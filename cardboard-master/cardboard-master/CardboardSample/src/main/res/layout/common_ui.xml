@@ -5,14 +5,13 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" >
 
-
      <com.google.vrtoolkit.cardboard.CardboardView
-        android:id="@+id/cardboard_view"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true" />
-->
+         android:id="@+id/cardboard_view"
+         android:layout_width="fill_parent"
+         android:layout_height="fill_parent"
+         android:layout_alignParentLeft="true"
+         android:layout_alignParentTop="true"
+          />
 
     <com.google.vrtoolkit.cardboard.samples.treasurehunt.CardboardOverlayView
         android:id="@+id/overlay"
@@ -28,15 +27,16 @@
 
             <ImageView
                 android:id="@+id/imageViewL"
-                android:layout_width="250dp"
+                android:layout_width="300dp"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_launcher" />
 
-	        <ImageView
-	            android:id="@+id/imageViewR"
-	            android:layout_width="250dp"
-	            android:layout_height="match_parent"
-	            android:src="@drawable/ic_launcher" />
+            <ImageView
+                android:id="@+id/imageViewR"
+                android:layout_width="300dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_launcher" />
+
 	</LinearLayout>
 
 

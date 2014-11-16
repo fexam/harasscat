@@ -471,7 +471,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
         }
         // Always give user feedback
         mVibrator.vibrate(50);
-        spamPacket("LASER");
+      //  spamPacket("LASER");
     }
 
     /**
