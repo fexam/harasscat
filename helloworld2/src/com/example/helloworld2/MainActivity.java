@@ -82,7 +82,7 @@ protected void onCreate(Bundle savedInstanceState) {
     //while(true){
     	
     	pd = new ProgressDialog(this);
-        pd.setMessage("Loading..");
+      //  pd.setMessage("Loading..");
         new TheTask().execute();    
     	Bitmap blah = null;
 //    	try {
@@ -194,7 +194,7 @@ class TheTask extends AsyncTask<Void,Void,Void>
     protected void onPreExecute() {
         // TODO Auto-generated method stub
         super.onPreExecute();
-        pd.show();
+       // pd.show();
     }
 
 
@@ -223,8 +223,8 @@ class TheTask extends AsyncTask<Void,Void,Void>
         if(image!=null)
         {
             iv.setImageBitmap(image);
-            new TheTask().execute();    
-
+//            new TheTask().execute();   
+            this.execute();
         }
 
     }   
