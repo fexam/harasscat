@@ -36,13 +36,14 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.net.* ;
+import java.io.* ;
 
 /**
  * A Cardboard sample application.
  */
 public class MainActivity extends CardboardActivity implements CardboardView.StereoRenderer {
-	private String CameraComputerIP = "255.255.255.255";
-	private int CameraComputerPort = 9001;
+	private String CameraComputerIP = "129.161.52.212";
+	private int CameraComputerPort = 8080;
 	
     private static final String TAG = "MainActivity";
 
@@ -477,7 +478,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
         return (Math.abs(pitch) < PITCH_LIMIT) && (Math.abs(yaw) < YAW_LIMIT);
     }
-    private boolean spamPacket(String message)
+    private boolean spamPacket(String message) 
     {
     	byte[] message2 = message.getBytes();
     	InetAddress address = null;
@@ -485,12 +486,24 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
         try {
 			address = InetAddress.getByName(CameraComputerIP);
 		} catch (UnknownHostException e) {
+			
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         DatagramPacket packet = new DatagramPacket(message2, message2.length,
                 address, CameraComputerPort);
+		try {
+        DatagramSocket dsocket = new DatagramSocket();
+			dsocket.send(packet);
+			dsocket.close();
 
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     	return true;
     }
 }
