@@ -16,15 +16,26 @@
 
 package com.google.vrtoolkit.cardboard.samples.treasurehunt;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.util.Log;
 import com.google.vrtoolkit.cardboard.*;
 
 import javax.microedition.khronos.egl.EGLConfig;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,17 +44,26 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.net.* ;
 import java.io.* ;
 
+
+
 /**
  * A Cardboard sample application.
  */
 public class MainActivity extends CardboardActivity implements CardboardView.StereoRenderer {
+	String ImageURL = "http://129.161.139.112:8080/shot.jpg";
+//	String ImageURL = "http://thumbs.gograph.com/gg66374935.jpg";
 	private String CameraComputerIP = "129.161.52.212";
 	private int CameraComputerPort = 8080;
+	ImageView ivL;
+	ImageView ivR;
+	ProgressDialog pd;
+	Bitmap image;
 	
     private static final String TAG = "MainActivity";
 
@@ -95,7 +115,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     private Vibrator mVibrator;
 
-    private CardboardOverlayView mOverlayView;
+    //private CardboardOverlayView mOverlayView;
     public String debugstr;
 
     /**
@@ -136,7 +156,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
         int error;
         while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
             Log.e(TAG, func + ": glError " + error);
-            throw new RuntimeException(func + ": glError " + error);
+            throw new RuntimeException(func + ": glError " + error);	//!!!
         }
     }
 
@@ -153,7 +173,10 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
         CardboardView cardboardView = (CardboardView) findViewById(R.id.cardboard_view);
         cardboardView.setRenderer(this);
         setCardboardView(cardboardView);
-
+        ivL = (ImageView) findViewById(R.id.imageViewL);
+        ivR = (ImageView) findViewById(R.id.imageViewR);
+        
+        
         mModelCube = new float[16];
         mCamera = new float[16];
         mView = new float[16];
@@ -163,9 +186,10 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
         mHeadView = new float[16];
         mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
+       // new TheTask().execute();    
 
-        mOverlayView = (CardboardOverlayView) findViewById(R.id.overlay);
-        mOverlayView.show3DToast("Pull the magnet when you find an object.");
+        //mOverlayView = (CardboardOverlayView) findViewById(R.id.overlay);
+        //mOverlayView.show3DToast("Pull the magnet when you find an object.");
     }
 
     @Override
@@ -183,7 +207,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
      * arrays, but rather needs data in a format it can understand. Hence we use ByteBuffers.
      * @param config The EGL configuration used when creating the surface.
      */
-    @Override
+   @Override
     public void onSurfaceCreated(EGLConfig config) {
         Log.i(TAG, "onSurfaceCreated");
         GLES20.glClearColor(0.1f, 0.1f, 0.1f, 0.5f); // Dark background so text shows up well
@@ -282,7 +306,15 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     	GLES20.glUseProgram(mGlProgram);
         float[] buffer1 = new float[3];
         
-        
+        //DO NETWORK IO IN MAIN THREAD BECAUSE FUCK YOU
+//        image = downloadBitmap(ImageURL);
+//        if(image!=null)
+//        {
+//            ivL.setImageBitmap(image);
+//            ivR.setImageBitmap(image);
+//        }
+
+
         headTransform.getForwardVector(buffer1, 0);
 //        mytext = (EditText) findViewById(R.id.editText1);
         String str = Float.toString(buffer1[0] )+ " " + Float.toString(buffer1[1]) + " " + Float.toString(buffer1[2]);
@@ -305,7 +337,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
         headTransform.getHeadView(mHeadView, 0);
 
-        checkGLError("onReadyToDraw");
+        checkGLError("onReadyToDraw");	//!!!
+
     }
 
     /**
@@ -345,6 +378,16 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
         Matrix.multiplyMM(mModelViewProjection, 0, transform.getPerspective(), 0,
             mModelView, 0);
         drawFloor(transform.getPerspective());
+        //DO NETWORK IO IN MAIN THREAD BECAUSE FUCK YOU
+//      image = downloadBitmap(ImageURL);
+//      if(image!=null)
+//      {
+//          ivL.setImageBitmap(image);
+//          ivR.setImageBitmap(image);
+//      }
+        new TheTask().execute();   
+ 
+
     }
 
     @Override
@@ -418,16 +461,17 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     @Override
     public void onCardboardTrigger() {
         Log.i(TAG, "onCardboardTrigger");
-
+        
         if (isLookingAtObject()) {
             mScore++;
-            mOverlayView.show3DToast(debugstr);
+            //mOverlayView.show3DToast(debugstr);
             hideObject();
         } else {
-            mOverlayView.show3DToast(debugstr);
+           // mOverlayView.show3DToast(debugstr);
         }
         // Always give user feedback
         mVibrator.vibrate(50);
+        spamPacket("LASER");
     }
 
     /**
@@ -506,6 +550,120 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 		}
     	return true;
     }
+
+/*	@Override
+	public void onSurfaceCreated(EGLConfig arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+*/
+//	@Override
+//	public void onDrawEye(EyeTransform arg0) {
+//		// TODO Auto-generated method stub
+//		
+//	}
+	
+	/*
+	 * More or less exactly what it says on the tin. Downloads an image.
+	 * Is called asynchronously or some shit
+	 * 
+	 */
+	private Bitmap downloadBitmap(String url) {
+    // initilize the default HTTP client object
+    final DefaultHttpClient client = new DefaultHttpClient();
+    Bitmap bmpImage= null;
+
+    //forming a HttoGet request 
+    final HttpGet getRequest = new HttpGet(url);
+    try {
+
+        HttpResponse response = client.execute(getRequest);
+
+        //check 200 OK for success
+        final int statusCode = response.getStatusLine().getStatusCode();
+
+        if (statusCode != HttpStatus.SC_OK) {
+            Log.w("ImageDownloader", "Error " + statusCode + 
+                    " while retrieving bitmap from " + url);
+            return null;
+
+        }
+
+        final HttpEntity entity = response.getEntity();
+        if (entity != null) {
+            InputStream inputStream = null;
+            try {
+                // getting contents from the stream 
+                inputStream = entity.getContent();
+
+                // decoding stream data back into image Bitmap that android understands
+                bmpImage = BitmapFactory.decodeStream(inputStream);
+
+
+            } finally {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+                entity.consumeContent();
+            }
+        }
+    } catch (Exception e) {
+        // You Could provide a more explicit error message for IOException
+        getRequest.abort();
+        Log.e("ImageDownloader", "Something went wrong while" +
+                " retrieving bitmap from " + url + e.toString());
+    } 
+
+    return bmpImage;
+}
+	class TheTask extends AsyncTask<Void,Void,Void>
+	{
+
+	    @Override
+	    protected void onPreExecute() {
+	        // TODO Auto-generated method stub
+	        super.onPreExecute();
+	       // pd.show();
+	    }
+
+	    
+	    @Override
+	    protected Void doInBackground(Void... params) {
+	        // TODO Auto-generated method stub
+	        try
+	        {
+	        //URL url = new URL( "http://a3.twimg.com/profile_images/670625317/aam-logo-v3-twitter.png");
+	        image = downloadBitmap(ImageURL);
+	        }
+	        catch(Exception e)
+	        {
+	            e.printStackTrace();
+	        }
+	        return null;
+	    }
+
+	    @Override
+	    protected void onPostExecute(Void result) {
+	        // TODO Auto-generated method stub
+	        super.onPostExecute(result);
+	        //pd.dismiss();
+	        if(image!=null)
+	        {
+	            ivL.setImageBitmap(image);
+	            ivR.setImageBitmap(image);
+//	            new TheTask().execute();   
+//	            this.execute();
+	            try {
+					this.finalize();
+				} catch (Throwable e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	        }
+
+	    }   
+	}
+
 }
 
 

@@ -6,27 +6,39 @@
     android:layout_height="fill_parent" >
 
 
-    <com.google.vrtoolkit.cardboard.CardboardView
+     <com.google.vrtoolkit.cardboard.CardboardView
         android:id="@+id/cardboard_view"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true" />
+->
 
     <com.google.vrtoolkit.cardboard.samples.treasurehunt.CardboardOverlayView
         android:id="@+id/overlay"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true" >
+        android:layout_alignParentTop="true"
+        android:orientation="horizontal" >
 
-        <EditText
-            android:id="@+id/editText1"
-            android:layout_width="wrap_content"
-            android:layout_height="144dp"
-            android:ems="10"
-            android:inputType="text"
-            android:text="test" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <ImageView
+                android:id="@+id/imageViewL"
+                android:layout_width="250dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_launcher" />
+
+	        <ImageView
+	            android:id="@+id/imageViewR"
+	            android:layout_width="250dp"
+	            android:layout_height="match_parent"
+	            android:src="@drawable/ic_launcher" />
+	</LinearLayout>
+
 
     </com.google.vrtoolkit.cardboard.samples.treasurehunt.CardboardOverlayView>
 
